@@ -67,14 +67,14 @@ namespace transport_catalogue {
         void AddStopsDistances(const std::pair<std::string, std::unordered_map<std::string, int>>& distances);
         const Bus* FindBus(std::string_view name) const;
         const Stop* FindStop(std::string_view name) const;
-        BusInfo GetBusInfo(std::string& name) const;
-        StopInfo GetStopInfo(std::string& name) const;
+        BusInfo GetBusInfo(const std::string& name) const;
+        StopInfo GetStopInfo(const std::string& name) const;
 
     private:
-        double ComputeGeographicalDistance(const Bus* bus) const;
-        int ComputeRoadDistance(const Bus* bus) const;
-        int CountDistanceOnSegmentForward(const Bus* bus, size_t finish) const;
-        int CountDistanceOnSegmentBackward(const Bus* bus, size_t start) const;
+        double ComputeGeographicalDistance(const Bus& bus) const;
+        int ComputeRoadDistance(const Bus& bus) const;
+        int CountDistanceOnSegmentForward(const Bus& bus, size_t finish) const;
+        int CountDistanceOnSegmentBackward(const Bus& bus, size_t start) const;
 
         class Hasher {
         private:

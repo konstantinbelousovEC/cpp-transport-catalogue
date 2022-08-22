@@ -18,15 +18,5 @@ namespace transport_catalogue {
 
         void ReadInputQueries(TransportCatalogue& tc, std::istream& input);
         void ProcessInputQueries(TransportCatalogue& tc, SortedQueries& queries);
-
-        namespace detail {
-
-            Stop ParseStopQueryForBaseInfo(const std::string& query);
-            std::pair<std::string, std::unordered_map<std::string, int>> ParseStopQueryForDistance(const std::string& query);
-            RawBus ParseBusQuery(const std::string& query);
-            std::vector<std::string> ParseSequenceOnSegments(const std::string& sequence, const std::string& separator);
-            std::pair<std::string, int> ParseDistanceCharacteristic(const std::string& query);
-        }
     }
 }
-

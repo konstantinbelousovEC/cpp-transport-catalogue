@@ -9,12 +9,6 @@ namespace transport_catalogue {
 
     namespace output {
 
-        void ReadAndShowOutputQueries(TransportCatalogue& tc, std::istream& input);
-
-        namespace detail {
-
-            void ShowBusInfo(const BusInfo& info);
-            void ShowStopInfo(const StopInfo& info);
-        }
+        void ReadAndShowOutputQueries(const TransportCatalogue& tc, std::istream& input);
     }
 }

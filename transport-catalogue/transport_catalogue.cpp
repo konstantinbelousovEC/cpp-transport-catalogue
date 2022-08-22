@@ -3,7 +3,7 @@
 namespace transport_catalogue {
     void TransportCatalogue::AddStop(Stop stop) {
         stops_.push_back(std::move(stop));
-        stop_indexes_.insert({std::string_view(stops_[stops_.size() - 1].name_), &stops_[stops_.size() - 1]});
+        stop_indexes_.insert({std::string_view(stops_.back().name_), &stops_.back()});
     }
 
     void TransportCatalogue::AddBus(RawBus raw_bus) {
@@ -14,9 +14,9 @@ namespace transport_catalogue {
             unique_stops.insert(str);
         }
         buses_.push_back({std::move(raw_bus.name_), std::move(stops_set), unique_stops.size(), raw_bus.type_});
-        buses_indexes_.insert({std::string_view(buses_[buses_.size() - 1].name_), &buses_[buses_.size() - 1]});
+        buses_indexes_.insert({std::string_view(buses_.back().name_), &buses_.back()});
         for (const std::string_view str : unique_stops) {
-            buses_through_the_stop_indexes_[FindStop(str)].insert(buses_[buses_.size() - 1].name_);
+            buses_through_the_stop_indexes_[FindStop(str)].insert(buses_.back().name_);
         }
     }
 
@@ -36,7 +36,7 @@ namespace transport_catalogue {
         return stop_indexes_.at(name);
     }
 
-    BusInfo TransportCatalogue::GetBusInfo(std::string& name) const {
+    BusInfo TransportCatalogue::GetBusInfo(const std::string& name) const {
         BusInfo info;
         const Bus* bus = FindBus(name);
         if (bus == nullptr) return {name, 0,0,0, 0.0};
@@ -47,12 +47,12 @@ namespace transport_catalogue {
         } else if (bus->type_ == BusType::CIRCULAR) {
             info.stops_on_route_ = static_cast<int>(bus->stops_.size()) + 1;
         }
-        info.route_length_road_ = ComputeRoadDistance(bus);
-        info.curvature_ =  info.route_length_road_ / ComputeGeographicalDistance(bus);
+        info.route_length_road_ = ComputeRoadDistance(*bus);
+        info.curvature_ =  info.route_length_road_ / ComputeGeographicalDistance(*bus);
         return info;
     }
 
-    StopInfo TransportCatalogue::GetStopInfo(std::string &name) const {
+    StopInfo TransportCatalogue::GetStopInfo(const std::string &name) const {
         const Stop* stop = FindStop(name);
         if (stop == nullptr) return {name, empty_, true};
         if (buses_through_the_stop_indexes_.count(stop) == 0) return {name, empty_};
@@ -60,28 +60,28 @@ namespace transport_catalogue {
         return info;
     }
 
-    double TransportCatalogue::ComputeGeographicalDistance(const Bus* bus) const {
+    double TransportCatalogue::ComputeGeographicalDistance(const Bus& bus) const {
         std::vector<geo::Coordinates> coordinates;
         std::vector<double> distances;
-        for (const Stop* stop: bus->stops_) {
+        for (const Stop* stop: bus.stops_) {
             coordinates.push_back({stop->latitude_, stop->longitude_});
         }
         for (int i = 0; i < coordinates.size() - 1; i++) {
             distances.push_back(geo::ComputeDistance(coordinates[i], coordinates[i + 1]));
         }
-        if (bus->type_ == BusType::REVERSE) {
+        if (bus.type_ == BusType::REVERSE) {
             return std::accumulate(distances.begin(), distances.end(), 0.0) * 2;
         } else {
-            distances.push_back(geo::ComputeDistance(coordinates[coordinates.size() - 1], coordinates[0]));
+            distances.push_back(geo::ComputeDistance(coordinates.back(), coordinates[0]));
             return std::accumulate(distances.begin(), distances.end(), 0.0);
         }
     }
 
-    int TransportCatalogue::CountDistanceOnSegmentForward(const Bus* bus, size_t finish) const {
+    int TransportCatalogue::CountDistanceOnSegmentForward(const Bus& bus, size_t finish) const {
         int distance = 0;
         for (size_t i = 0; i < finish; i++) {
-            std::pair<const Stop*, const Stop*> pair_of_stops(bus->stops_[i], bus->stops_[i + 1]);
-            std::pair<const Stop*, const Stop*> pair_of_stops_reverse(bus->stops_[i + 1], bus->stops_[i]);
+            std::pair<const Stop*, const Stop*> pair_of_stops(bus.stops_[i], bus.stops_[i + 1]);
+            std::pair<const Stop*, const Stop*> pair_of_stops_reverse(bus.stops_[i + 1], bus.stops_[i]);
             if (distances_between_stops_.count(pair_of_stops) > 0) {
                 distance += distances_between_stops_.at(pair_of_stops);
             } else if (distances_between_stops_.count(pair_of_stops_reverse) > 0) {
@@ -91,11 +91,11 @@ namespace transport_catalogue {
         return distance;
     }
 
-    int TransportCatalogue::CountDistanceOnSegmentBackward(const Bus* bus, size_t start) const {
+    int TransportCatalogue::CountDistanceOnSegmentBackward(const Bus& bus, size_t start) const {
         int distance = 0;
         for (size_t i = start; i > 0; i--) {
-            std::pair<const Stop*, const Stop*> pair_of_stops(bus->stops_[i], bus->stops_[i - 1]);
-            std::pair<const Stop*, const Stop*> pair_of_stops_reverse(bus->stops_[i - 1], bus->stops_[i]);
+            std::pair<const Stop*, const Stop*> pair_of_stops(bus.stops_[i], bus.stops_[i - 1]);
+            std::pair<const Stop*, const Stop*> pair_of_stops_reverse(bus.stops_[i - 1], bus.stops_[i]);
             if (distances_between_stops_.count(pair_of_stops) > 0) {
                 distance += distances_between_stops_.at(pair_of_stops);
             } else if (distances_between_stops_.count(pair_of_stops_reverse) > 0) {
@@ -105,20 +105,20 @@ namespace transport_catalogue {
         return distance;
     }
 
-    int TransportCatalogue::ComputeRoadDistance(const Bus* bus) const {
+    int TransportCatalogue::ComputeRoadDistance(const Bus& bus) const {
         int distance = 0;
-        if (bus->type_ == BusType::CIRCULAR) {
-            distance += CountDistanceOnSegmentForward(bus, bus->stops_.size() - 1);
-            std::pair<const Stop*, const Stop*> pair_of_stops(bus->stops_[bus->stops_.size() - 1], bus->stops_[0]);
-            std::pair<const Stop*, const Stop*> pair_of_stops_reverse(bus->stops_[0], bus->stops_[bus->stops_.size() - 1]);
+        if (bus.type_ == BusType::CIRCULAR) {
+            distance += CountDistanceOnSegmentForward(bus, bus.stops_.size() - 1);
+            std::pair<const Stop*, const Stop*> pair_of_stops(bus.stops_.back(), bus.stops_[0]);
+            std::pair<const Stop*, const Stop*> pair_of_stops_reverse(bus.stops_[0], bus.stops_.back());
             if (distances_between_stops_.count(pair_of_stops) > 0) {
                 distance += distances_between_stops_.at(pair_of_stops);
             } else if (distances_between_stops_.count(pair_of_stops_reverse) > 0) {
                 distance += distances_between_stops_.at(pair_of_stops_reverse);
             }
         } else {
-            distance += CountDistanceOnSegmentForward(bus, bus->stops_.size() - 1);
-            distance += CountDistanceOnSegmentBackward(bus,  bus->stops_.size() - 1);
+            distance += CountDistanceOnSegmentForward(bus, bus.stops_.size() - 1);
+            distance += CountDistanceOnSegmentBackward(bus,  bus.stops_.size() - 1);
         }
         return distance;
     }

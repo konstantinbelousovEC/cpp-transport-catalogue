@@ -4,7 +4,7 @@
 
 namespace geo {
 
-    const int EPSILON = 1e-6;
+    const double EPSILON = 1e-6;
 
     struct Coordinates {
         double lat;
