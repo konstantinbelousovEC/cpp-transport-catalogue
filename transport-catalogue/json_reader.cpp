@@ -131,7 +131,7 @@ namespace reader {
 
     json::Node ProcessStopQuery(RequestHandler& request_handler, const json::Dict* query) {
         auto stop_info = request_handler.GetBusesByStop(query->at("name").AsString());
-        if (stop_info == std::nullopt) {
+        if (!stop_info.has_value()) {
             return MakeErrorResponse(query);
         } else {
             return MakeJSONStopResponse(stop_info.value(), query);
