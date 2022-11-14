@@ -32,12 +32,12 @@ namespace renderer {
 
     void MapRenderer::AddPointsToPolyline(svg::Polyline& polyline, const domain::Bus* const bus) const {
         for (auto stop : bus->stops_) {
-            const svg::Point point = proj_({stop->latitude_, stop->longitude_});
+            const svg::Point point = projector_({stop->latitude_, stop->longitude_});
             polyline.AddPoint(point);
         }
         if (bus->type_ == domain::BusType::REVERSE) {
             for (int i = bus->stops_.size() - 2; i >= 0; i--) {
-                const svg::Point point = proj_({ bus->stops_[i]->latitude_, bus->stops_[i]->longitude_ });
+                const svg::Point point = projector_({ bus->stops_[i]->latitude_, bus->stops_[i]->longitude_ });
                 polyline.AddPoint(point);
             }
         }
@@ -67,7 +67,7 @@ namespace renderer {
         for (const auto stop : stops_) {
             if (stop == nullptr) throw std::invalid_argument("Vector of stops pointers has null pointer(s)");
             svg::Circle circle;
-            circle.SetCenter(proj_({stop->latitude_, stop->longitude_}))
+            circle.SetCenter(projector_({stop->latitude_, stop->longitude_}))
                   .SetRadius(settings_.stop_radius_)
                   .SetFillColor("white");
             doc.Add(circle);
@@ -81,7 +81,7 @@ namespace renderer {
             doc.Add(underlayer);
             svg::Text text;
             text.SetFillColor("black")
-                .SetPosition(proj_({stop->latitude_, stop->longitude_}))
+                .SetPosition(projector_({stop->latitude_, stop->longitude_}))
                 .SetOffset(settings_.stop_label_offset_)
                 .SetFontSize(settings_.stop_label_font_size_)
                 .SetFontFamily("Verdana")
@@ -97,7 +97,7 @@ namespace renderer {
                 .SetStrokeWidth(settings_.underlayer_width_)
                 .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
                 .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND)
-                .SetPosition(proj_({stop->latitude_, stop->longitude_}))
+                .SetPosition(projector_({stop->latitude_, stop->longitude_}))
                 .SetOffset(type == UNDERLAYER_TYPE::BUS ? settings_.bus_label_offset_ : settings_.stop_label_offset_)
                 .SetFontSize(type == UNDERLAYER_TYPE::BUS ? settings_.bus_label_font_size_ : settings_.stop_label_font_size_)
                 .SetFontFamily("Verdana")
@@ -109,7 +109,7 @@ namespace renderer {
     svg::Text MapRenderer::MakeTextBusName(const domain::Stop* const stop, std::string_view name, int& color_count, int color_amount) const {
         svg::Text text;
         text.SetFillColor(settings_.color_palette_[color_count % color_amount])
-            .SetPosition(proj_({stop->latitude_, stop->longitude_}))
+            .SetPosition(projector_({stop->latitude_, stop->longitude_}))
             .SetOffset(settings_.bus_label_offset_)
             .SetFontSize(settings_.bus_label_font_size_)
             .SetFontFamily("Verdana")

@@ -52,7 +52,7 @@ namespace renderer {
         std::vector<svg::Color> color_palette_;
     };
 
-    enum UNDERLAYER_TYPE {
+    enum class UNDERLAYER_TYPE {
         STOP,
         BUS
     };
@@ -61,7 +61,7 @@ namespace renderer {
     public:
         explicit MapRenderer(RenderSettings& settings, std::vector<geo::Coordinates> coords, std::vector<const domain::Bus*> buses, std::vector<const domain::Stop*> stops)
         : settings_(settings),
-        proj_(coords.begin(), coords.end(), settings.width_, settings.height_,settings.padding_),
+        projector_(coords.begin(), coords.end(), settings.width_, settings.height_,settings.padding_),
         buses_(std::move(buses)),
         stops_(std::move(stops)) {}
 
@@ -69,7 +69,7 @@ namespace renderer {
 
     private:
         RenderSettings settings_;
-        SphereProjector proj_;
+        SphereProjector projector_;
         std::vector<const domain::Bus*> buses_;
         std::vector<const domain::Stop*> stops_;
 

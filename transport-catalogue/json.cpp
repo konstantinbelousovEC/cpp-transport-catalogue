@@ -240,30 +240,6 @@ namespace json {
 
     }
 
-    Node::Node()
-            : element_(nullptr) {}
-
-    Node::Node(std::nullptr_t n)
-            : element_(n) {}
-
-    Node::Node(Array array)
-            : element_(move(array)) {}
-
-    Node::Node(Dict map)
-            : element_(move(map)) {}
-
-    Node::Node(string value)
-            : element_(move(value)) {}
-
-    Node::Node(int value)
-            : element_(value) {}
-
-    Node::Node(double value)
-            : element_(value) {}
-
-    Node::Node(bool value)
-            : element_(value) {}
-
     Document::Document(Node root)
             : root_(move(root)) {
     }

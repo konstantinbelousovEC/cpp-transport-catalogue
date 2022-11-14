@@ -6,15 +6,15 @@
 
 class RequestHandler {
 public:
-    explicit RequestHandler(const transport_catalogue::TransportCatalogue& db, renderer::RenderSettings& settings)
-    : db_(db), renderer_(settings, std::move(db.GetValidCoordinates()), db.GetSortedBuses(), db.GetSortedStops()) {}
+    explicit RequestHandler(const transport_catalogue::TransportCatalogue& transport_catalogue, renderer::RenderSettings& settings)
+    : transport_catalogue_(transport_catalogue), renderer_(settings, std::move(transport_catalogue.GetValidCoordinates()), transport_catalogue.GetSortedBuses(), transport_catalogue.GetSortedStops()) {}
 
-    [[nodiscard]] const domain::BusInfo GetBusStat(const std::string_view& bus_name) const;
-    [[nodiscard]] const domain::StopInfo GetBusesByStop(const std::string_view& stop_name) const;
+    [[nodiscard]] const std::optional<domain::BusInfo> GetBusStat(const std::string_view& bus_name) const;
+    [[nodiscard]] const std::optional<domain::StopInfo> GetBusesByStop(const std::string_view& stop_name) const;
     void Render(std::ostream& out) const { renderer_.Render(out); }
 
 private:
-    const transport_catalogue::TransportCatalogue& db_;
+    const transport_catalogue::TransportCatalogue& transport_catalogue_;
     renderer::MapRenderer renderer_;
 };
 

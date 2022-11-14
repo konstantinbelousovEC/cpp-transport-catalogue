@@ -28,17 +28,17 @@ namespace reader {
 
     SortedJSONQueries ParseJSON(json::Document& doc);
 
-    void AddStopsFromJSON(transport_catalogue::TransportCatalogue& tc, std::unordered_set<const json::Dict*>& queries);
-    void AddStopsDistancesFromJSON(transport_catalogue::TransportCatalogue& tc, std::unordered_set<const json::Dict*>& queries);
-    void AddBusesFromJSON(transport_catalogue::TransportCatalogue& tc, std::unordered_set<const json::Dict*>& queries);
+    void AddStopsFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries);
+    void AddStopsDistancesFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries);
+    void AddBusesFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries);
 
     svg::Point MakeOffset(const json::Array& values);
     svg::Color MakeColorForSVG(const json::Node& node);
-    std::vector<svg::Color> MakeArrayOfColors(const json::Array& arr);
+    std::vector<svg::Color> MakeArrayOfColors(const json::Array& array);
 
-    void FillTC(transport_catalogue::TransportCatalogue& tc, std::unordered_set<const json::Dict*>& stop_q, std::unordered_set<const json::Dict*>& bus_q);
+    void FillTransportCatalogue(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& stop_queries, std::unordered_set<const json::Dict*>& bus_queries);
 
-    json::Node ProcessStopQuery(RequestHandler& db, const json::Dict* query);
-    json::Node ProcessBusQuery(RequestHandler& db, const json::Dict* query);
-    json::Document ProcessStatRequests(RequestHandler& db, std::vector<const json::Dict*>& stat_q);
+    json::Node ProcessStopQuery(RequestHandler& request_handler, const json::Dict* query);
+    json::Node ProcessBusQuery(RequestHandler& request_handler, const json::Dict* query);
+    json::Document ProcessStatRequests(RequestHandler& request_handler, std::vector<const json::Dict*>& stat_queries);
 }

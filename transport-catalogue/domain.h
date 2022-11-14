@@ -4,10 +4,11 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <optional>
 
 namespace domain {
 
-    enum BusType {
+    enum class BusType {
         REVERSE,
         CIRCULAR
     };
@@ -47,7 +48,6 @@ namespace domain {
 
     struct StopInfo {
         std::string_view name_;
-        const std::set<std::string_view>& buses_;
-        bool not_exists = false;
+        const std::optional<std::set<std::string_view>> buses_;
     };
 }

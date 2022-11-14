@@ -21,15 +21,11 @@ namespace json {
     public:
         using Value = std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string>;
 
-        Node();
-        Node(std::nullptr_t n);
-        Node(Array array);
-        Node(Dict map);
-        Node(std::string value);
-        Node(int value);
-        Node(double value);
-        Node(bool value);
+        Node()
+                : element_(nullptr) {}
 
+        template<typename T>
+        Node(T value) : element_(std::move(value)) {}
 
         bool IsInt() const;
         bool IsDouble() const;
@@ -47,11 +43,11 @@ namespace json {
         const Array& AsArray() const;
         const Dict& AsMap() const;
 
-        inline bool operator==(const Node& other) const {
+        bool operator==(const Node& other) const {
             return this->element_ == other.element_;
         }
 
-        inline bool operator!=(const Node& other) const {
+        bool operator!=(const Node& other) const {
             return !(*this == other);
         }
 

@@ -40,9 +40,9 @@ namespace reader {
         }
     }
 
-    std::vector<svg::Color> MakeArrayOfColors(const json::Array& arr) {
+    std::vector<svg::Color> MakeArrayOfColors(const json::Array& array) {
         std::vector<svg::Color> res;
-        for (auto& elem : arr) {
+        for (auto& elem : array) {
             res.push_back(MakeColorForSVG(elem));
         }
         return res;
@@ -84,10 +84,10 @@ namespace reader {
         return queries;
     }
 
-    void AddStopsFromJSON(transport_catalogue::TransportCatalogue& tc, std::unordered_set<const json::Dict*>& queries) {
+    void AddStopsFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries) {
         for (const json::Dict* query : queries) {
             const std::string stop_name = query->at("name").AsString();
-            tc.AddStop({
+            transport_catalogue.AddStop({
                                stop_name,
                                query->at("latitude").AsDouble(),
                                query->at("longitude").AsDouble(),
@@ -95,24 +95,24 @@ namespace reader {
         }
     }
 
-    void AddStopsDistancesFromJSON(transport_catalogue::TransportCatalogue& tc, std::unordered_set<const json::Dict*>& queries) {
+    void AddStopsDistancesFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries) {
         for (const json::Dict* query : queries) {
             std::unordered_map<std::string, int> distances;
             for (auto& [key, value] : query->at("road_distances").AsMap()) {
                 distances.insert({key, value.AsInt()});
             }
-            tc.AddStopsDistances({query->at("name").AsString(), distances});
+            transport_catalogue.AddStopsDistances({query->at("name").AsString(), distances});
         }
     }
 
-    void AddBusesFromJSON(transport_catalogue::TransportCatalogue& tc, std::unordered_set<const json::Dict*>& queries) {
+    void AddBusesFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries) {
         for (const json::Dict* query : queries) {
             std::vector<std::string> stops;
             stops.reserve(query->at("stops").AsArray().size());
             for (auto& stop_node : query->at("stops").AsArray()) {
                 stops.push_back(stop_node.AsString());
             }
-            tc.AddBus({
+            transport_catalogue.AddBus({
                               query->at("name").AsString(),
                               stops,
                               query->at("is_roundtrip").AsBool() ? domain::BusType::CIRCULAR : domain::BusType::REVERSE
@@ -120,51 +120,51 @@ namespace reader {
         }
     }
 
-    void FillTC(transport_catalogue::TransportCatalogue& tc,
-                std::unordered_set<const json::Dict*>& stop_q,
-                std::unordered_set<const json::Dict*>& bus_q)
+    void FillTransportCatalogue(transport_catalogue::TransportCatalogue& transport_catalogue,
+                std::unordered_set<const json::Dict*>& stop_queries,
+                std::unordered_set<const json::Dict*>& bus_queries)
     {
-        AddStopsFromJSON(tc, stop_q);
-        AddStopsDistancesFromJSON(tc, stop_q);
-        AddBusesFromJSON(tc, bus_q);
+        AddStopsFromJSON(transport_catalogue, stop_queries);
+        AddStopsDistancesFromJSON(transport_catalogue, stop_queries);
+        AddBusesFromJSON(transport_catalogue, bus_queries);
     }
 
-    json::Node ProcessStopQuery(RequestHandler& db, const json::Dict* query) {
-        auto stop_info = db.GetBusesByStop(query->at("name").AsString());
-        if (stop_info.not_exists) {
+    json::Node ProcessStopQuery(RequestHandler& request_handler, const json::Dict* query) {
+        auto stop_info = request_handler.GetBusesByStop(query->at("name").AsString());
+        if (stop_info == std::nullopt) {
             return MakeErrorResponse(query);
         } else {
-            return MakeJSONStopResponse(stop_info, query);
+            return MakeJSONStopResponse(stop_info.value(), query);
         }
     }
 
-    json::Node ProcessBusQuery(RequestHandler& db, const json::Dict* query) {
-        auto bus_info = db.GetBusStat(query->at("name").AsString());
-        if (bus_info.stops_on_route_ == 0) {
+    json::Node ProcessBusQuery(RequestHandler& request_handler, const json::Dict* query) {
+        auto bus_info = request_handler.GetBusStat(query->at("name").AsString());
+        if (!bus_info.has_value()) {
             return MakeErrorResponse(query);
         } else {
-            return MakeJSONBusResponse(bus_info, query);
+            return MakeJSONBusResponse(bus_info.value(), query);
         }
     }
 
-    json::Node ProcessMapQuery(RequestHandler& db, const json::Dict* query) {
+    json::Node ProcessMapQuery(RequestHandler& request_handler, const json::Dict* query) {
         std::ostringstream str;
-        db.Render(str);
+        request_handler.Render(str);
         return MakeJSONMapResponse(str.str(), query);
     }
 
-    json::Document ProcessStatRequests(RequestHandler& db, std::vector<const json::Dict*>& stat_q) {
-        json::Array arr;
-        for (auto query : stat_q) {
+    json::Document ProcessStatRequests(RequestHandler& request_handler, std::vector<const json::Dict*>& stat_queries) {
+        json::Array array;
+        for (auto query : stat_queries) {
             if (query->at("type").AsString() == "Stop") {
-                arr.push_back(ProcessStopQuery(db, query));
+                array.push_back(ProcessStopQuery(request_handler, query));
             } else if (query->at("type").AsString() == "Bus") {
-                arr.push_back(ProcessBusQuery(db, query));
+                array.push_back(ProcessBusQuery(request_handler, query));
             } else if (query->at("type").AsString() == "Map") {
-                arr.push_back(ProcessMapQuery(db, query));
+                array.push_back(ProcessMapQuery(request_handler, query));
             }
         }
-        json::Document doc(arr);
+        json::Document doc(array);
         return doc;
     }
 }

@@ -39,10 +39,10 @@ namespace transport_catalogue {
         return stop_indexes_.at(name);
     }
 
-    domain::BusInfo TransportCatalogue::GetBusInfo(const std::string& name) const {
+    std::optional<domain::BusInfo> TransportCatalogue::GetBusInfo(const std::string_view name) const {
         domain::BusInfo info;
         const domain::Bus* bus = FindBus(name);
-        if (bus == nullptr) return {name, 0,0,0, 0.0};
+        if (bus == nullptr) return std::nullopt;
         info.name_ = bus->name_;
         info.unique_stops_ = static_cast<int>(bus->unique_stops_);
         if (bus->type_ == domain::BusType::REVERSE) {
@@ -55,11 +55,14 @@ namespace transport_catalogue {
         return info;
     }
 
-    domain::StopInfo TransportCatalogue::GetStopInfo(const std::string &name) const {
+    std::optional<domain::StopInfo> TransportCatalogue::GetStopInfo(const std::string_view name) const {
         const domain::Stop* stop = FindStop(name);
-        if (stop == nullptr) return {name, empty_, true};
-        if (buses_through_the_stop_indexes_.count(stop) == 0) return {name, empty_};
-        domain::StopInfo info{name, buses_through_the_stop_indexes_.at(stop)};
+        if (stop == nullptr) return std::nullopt;
+        if (buses_through_the_stop_indexes_.count(stop) == 0) {
+            domain::StopInfo empty{stop->name_, std::nullopt};
+            return empty;
+        }
+        domain::StopInfo info{stop->name_, buses_through_the_stop_indexes_.at(stop)};
         return info;
     }
 

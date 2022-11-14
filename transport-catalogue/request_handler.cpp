@@ -1,11 +1,11 @@
 #include "request_handler.h"
 
-const domain::BusInfo RequestHandler::GetBusStat(const std::string_view &bus_name) const {
-    return db_.GetBusInfo(std::string (bus_name));
+const std::optional<domain::BusInfo> RequestHandler::GetBusStat(const std::string_view &bus_name) const {
+    return transport_catalogue_.GetBusInfo(std::string (bus_name));
 }
 
-const domain::StopInfo RequestHandler::GetBusesByStop(const std::string_view &stop_name) const {
-    return db_.GetStopInfo(std::string (stop_name));
+const std::optional<domain::StopInfo> RequestHandler::GetBusesByStop(const std::string_view &stop_name) const {
+    return transport_catalogue_.GetStopInfo(std::string (stop_name));
 }
 
 json::Node MakeErrorResponse(const json::Dict* query) {
@@ -18,8 +18,9 @@ json::Node MakeErrorResponse(const json::Dict* query) {
 
 json::Array MakeBusesArray(domain::StopInfo& stop_info) {
     json::Array buses;
-    buses.reserve(stop_info.buses_.size());
-    for (auto bus : stop_info.buses_) {
+    if (!stop_info.buses_.has_value()) return buses;
+    buses.reserve(stop_info.buses_.value().size());
+    for (auto bus : stop_info.buses_.value()) {
         buses.emplace_back(std::string(bus));
     }
     return buses;
