@@ -26,8 +26,8 @@ namespace transport_catalogue {
         void AddStopsDistances(const std::pair<std::string, std::unordered_map<std::string, int>>& distances);
         const domain::Bus* FindBus(std::string_view name) const;
         const domain::Stop* FindStop(std::string_view name) const;
-        std::optional<domain::BusInfo> GetBusInfo(const std::string_view name) const;
-        std::optional<domain::StopInfo> GetStopInfo(const std::string_view name) const;
+        std::optional<domain::BusInfo> GetBusInfo(std::string_view name) const;
+        std::optional<domain::StopInfo> GetStopInfo(std::string_view name) const;
         std::vector<const domain::Bus*> GetSortedBuses() const;
         std::vector<const domain::Stop*> GetSortedStops() const;
         std::vector<geo::Coordinates> GetValidCoordinates() const;

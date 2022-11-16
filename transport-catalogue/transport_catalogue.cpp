@@ -39,7 +39,7 @@ namespace transport_catalogue {
         return stop_indexes_.at(name);
     }
 
-    std::optional<domain::BusInfo> TransportCatalogue::GetBusInfo(const std::string_view name) const {
+    std::optional<domain::BusInfo> TransportCatalogue::GetBusInfo(std::string_view name) const {
         domain::BusInfo info;
         const domain::Bus* bus = FindBus(name);
         if (bus == nullptr) return std::nullopt;
@@ -55,14 +55,14 @@ namespace transport_catalogue {
         return info;
     }
 
-    std::optional<domain::StopInfo> TransportCatalogue::GetStopInfo(const std::string_view name) const {
+    std::optional<domain::StopInfo> TransportCatalogue::GetStopInfo(std::string_view name) const {
         const domain::Stop* stop = FindStop(name);
         if (stop == nullptr) return std::nullopt;
         if (buses_through_the_stop_indexes_.count(stop) == 0) {
-            domain::StopInfo empty{stop->name_, std::nullopt};
+            domain::StopInfo empty{stop->name_, nullptr};
             return empty;
         }
-        domain::StopInfo info{stop->name_, buses_through_the_stop_indexes_.at(stop)};
+        domain::StopInfo info{stop->name_, &buses_through_the_stop_indexes_.at(stop)};
         return info;
     }
 

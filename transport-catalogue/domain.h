@@ -48,6 +48,6 @@ namespace domain {
 
     struct StopInfo {
         std::string_view name_;
-        const std::optional<std::set<std::string_view>> buses_;
+        const std::set<std::string_view>* buses_;
     };
 }

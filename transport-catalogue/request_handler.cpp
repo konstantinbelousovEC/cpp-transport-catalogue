@@ -18,9 +18,9 @@ json::Node MakeErrorResponse(const json::Dict* query) {
 
 json::Array MakeBusesArray(domain::StopInfo& stop_info) {
     json::Array buses;
-    if (!stop_info.buses_.has_value()) return buses;
-    buses.reserve(stop_info.buses_.value().size());
-    for (auto bus : stop_info.buses_.value()) {
+    if (stop_info.buses_ == nullptr) return buses;
+    buses.reserve(stop_info.buses_->size());
+    for (auto bus : *stop_info.buses_) {
         buses.emplace_back(std::string(bus));
     }
     return buses;
