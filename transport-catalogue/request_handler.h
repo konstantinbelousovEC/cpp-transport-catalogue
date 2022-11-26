@@ -18,8 +18,8 @@ private:
     renderer::MapRenderer renderer_;
 };
 
-json::Node MakeErrorResponse(const json::Dict* query);
 json::Array MakeBusesArray(domain::StopInfo& stop_info);
+json::Node MakeErrorResponse(const json::Dict* query);
 json::Node MakeJSONStopResponse(domain::StopInfo& stop_info, const json::Dict* query);
 json::Node MakeJSONBusResponse(domain::BusInfo& bus_info, const json::Dict* query);
 json::Node MakeJSONMapResponse(const std::string& str, const json::Dict* query);

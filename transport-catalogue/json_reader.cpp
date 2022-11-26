@@ -5,7 +5,7 @@ namespace reader {
     void ParseBaseRequests(const json::Node& data, SortedJSONQueries& queries) {
         auto& requests = data.AsArray();
         for (auto& node : requests) {
-            auto& req_json = node.AsMap();
+            auto& req_json = node.AsDict();
             if (req_json.at("type").AsString() == "Stop") {
                 queries.stops_queries_.insert(&req_json);
             } else {
@@ -17,7 +17,7 @@ namespace reader {
     void ParseStatRequests(const json::Node& data, SortedJSONQueries& queries) {
         auto& requests = data.AsArray();
         for (auto& node : requests) {
-            queries.stat_requests_.push_back(&node.AsMap());
+            queries.stat_requests_.push_back(&node.AsDict());
         }
     }
 
@@ -49,7 +49,7 @@ namespace reader {
     }
 
     void ParseRenderSettings(const json::Node& data, SortedJSONQueries& queries) {
-        auto& settings = data.AsMap();
+        auto& settings = data.AsDict();
         renderer::RenderSettings set;
         set.width_ = settings.at("width").AsDouble();
         set.height_ = settings.at("height").AsDouble();
@@ -72,7 +72,7 @@ namespace reader {
 
     SortedJSONQueries ParseJSON(json::Document& doc) {
         SortedJSONQueries queries;
-        for (auto& [query, data] : doc.GetRoot().AsMap()) {
+        for (auto& [query, data] : doc.GetRoot().AsDict()) {
             if (query == "base_requests"s) {
                 ParseBaseRequests(data, queries);
             } else if (query == "stat_requests"s) {
@@ -98,7 +98,7 @@ namespace reader {
     void AddStopsDistancesFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries) {
         for (const json::Dict* query : queries) {
             std::unordered_map<std::string, int> distances;
-            for (auto& [key, value] : query->at("road_distances").AsMap()) {
+            for (auto& [key, value] : query->at("road_distances").AsDict()) {
                 distances.insert({key, value.AsInt()});
             }
             transport_catalogue.AddStopsDistances({query->at("name").AsString(), distances});
