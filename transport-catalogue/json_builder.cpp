@@ -5,7 +5,7 @@ namespace json {
     Builder& Builder::Key(std::string key) {
         if (root_ != nullptr) throw std::logic_error("calling Key-method for ready object");
         if (nodes_stack_.back()->IsDict()) {
-            Node::Value str{key};
+            Node::Value str{std::move(key)};
             nodes_.emplace_back(std::move(str));
             nodes_stack_.push_back(&nodes_.back());
         } else {
@@ -30,54 +30,94 @@ namespace json {
         return *this;
     }
 
-    void Builder::EndData(const std::string& type) {
-        if (nodes_stack_.empty()) throw std::logic_error("calling End" + type + "-method for ready or empty object");
-        if (type == "Dict" ? nodes_stack_.back()->IsDict() : nodes_stack_.back()->IsArray()) {
-            Node& node_ref = *nodes_stack_.back();
-            nodes_stack_.pop_back();
-            if (nodes_stack_.empty()) {
-                root_ = std::move(node_ref);
-            } else if (nodes_stack_.back()->IsArray()) {
-                nodes_stack_.back()->AsArray().emplace_back(std::move(node_ref));
-            } else if (nodes_stack_.back()->IsString()) {
-                Node& str_node_ref = *nodes_stack_.back();
-                nodes_stack_.pop_back();
-                nodes_stack_.back()->AsDict().insert({str_node_ref.AsString(), std::move(node_ref)});
-            }
+    Builder::DictItemContext Builder::StartDict() {
+        StartData(Dict{});
+        return {*this};
+    }
+
+    Builder::ArrayItemContext Builder::StartArray() {
+        StartData(Array{});
+        return {*this};
+    }
+
+    Builder& Builder::EndDict() {
+        if (nodes_stack_.empty()) throw std::logic_error("calling EndDict-method for ready or empty object");
+        if (nodes_stack_.back()->IsDict()) {
+            EndData();
+            return *this;
         } else {
-            throw std::logic_error("calling End" + type + "-method in wrong place");
+            throw std::logic_error("calling EndDict-method in wrong place");
         }
     }
 
-    Builder& ItemContext::EndDict() {
+    Builder& Builder::EndArray() {
+        if (nodes_stack_.empty()) throw std::logic_error("calling EndArray-method for ready or empty object");
+        if (nodes_stack_.back()->IsArray()) {
+            EndData();
+            return *this;
+        } else {
+            throw std::logic_error("calling EndArray-method in wrong place");
+        }
+    }
+
+    json::Node Builder::Build() {
+        if (nodes_stack_.empty() && root_ != nullptr) {
+            return root_;
+        } else {
+            throw std::logic_error("calling build when object is not ready");
+        }
+    }
+
+    void Builder::EndData() {
+        Node& node_ref = *nodes_stack_.back();
+        nodes_stack_.pop_back();
+        if (nodes_stack_.empty()) {
+            root_ = std::move(node_ref);
+        } else if (nodes_stack_.back()->IsArray()) {
+            nodes_stack_.back()->AsArray().emplace_back(std::move(node_ref));
+        } else if (nodes_stack_.back()->IsString()) {
+            Node& str_node_ref = *nodes_stack_.back();
+            nodes_stack_.pop_back();
+            nodes_stack_.back()->AsDict().insert({str_node_ref.AsString(), std::move(node_ref)});
+        }
+    }
+
+    Builder& Builder::ItemContext::EndDict() {
         builder_.EndDict();
         return builder_;
     }
-    Builder& ItemContext::EndArray() {
+
+    Builder& Builder::ItemContext::EndArray() {
         builder_.EndArray();
         return builder_;
     }
-    DictItemContext ItemContext::StartDict() {
+
+    Builder::DictItemContext Builder::ItemContext::StartDict() {
         builder_.StartDict();
         return {*this};
     }
-    ArrayItemContext ItemContext::StartArray() {
+
+    Builder::ArrayItemContext Builder::ItemContext::StartArray() {
         builder_.StartArray();
         return {*this};
     }
-    ValueAfterArrayContext ItemContext::Value(Node::Value value) {
+
+    Builder::ValueAfterArrayContext Builder::ItemContext::Value(Node::Value value) {
         builder_.Value(std::move(value));
         return {*this};
     }
-    ValueAfterKeyContext KeyItemContext::Value(Node::Value value) {
+
+    Builder::ValueAfterKeyContext Builder::KeyItemContext::Value(Node::Value value) {
         builder_.Value(std::move(value));
         return {*this};
     }
-    KeyItemContext ValueAfterKeyContext::Key(std::string key) {
+
+    Builder::KeyItemContext Builder::ValueAfterKeyContext::Key(std::string key) {
         builder_.Key(std::move(key));
         return {*this};
     }
-    KeyItemContext DictItemContext::Key(std::string key) {
+
+    Builder::KeyItemContext Builder::DictItemContext::Key(std::string key) {
         builder_.Key(std::move(key));
         return {*this};
     }
