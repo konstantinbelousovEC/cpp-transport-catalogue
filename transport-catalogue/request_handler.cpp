@@ -56,10 +56,6 @@ json::Node MakeJSONBusResponse(domain::BusInfo& bus_info, const json::Dict* quer
 }
 
 json::Node MakeJSONMapResponse(const std::string& str, const json::Dict* query) {
-    json::Dict res;
-    res.insert({"map", json::Node(str)});
-    res.insert({"request_id", query->at("id")});
-    // TODO: 3 строчки выше, видимо, не нужны
     return json::Builder{}.StartDict()
                                 .Key("map").Value(str)
                                 .Key("request_id").Value(query->at("id").GetValue())
