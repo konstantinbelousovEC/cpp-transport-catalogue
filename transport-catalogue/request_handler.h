@@ -11,10 +11,10 @@ public:
     using OptionalStopInfo = const std::optional<domain::StopInfo>;
     
     explicit RequestHandler(const transport_catalogue::TransportCatalogue& transport_catalogue,
-                            renderer::RenderSettings& settings,
+                            renderer::RenderSettings& render_settings,
                             transport_router::RoutingSettings routing_settings)
     : transport_catalogue_(transport_catalogue),
-      renderer_(settings, std::move(transport_catalogue.GetValidCoordinates()),
+      renderer_(render_settings, std::move(transport_catalogue.GetValidCoordinates()),
                              transport_catalogue.GetSortedBuses(),
                              transport_catalogue.GetSortedStops()),
       router_(routing_settings, transport_catalogue_) {}

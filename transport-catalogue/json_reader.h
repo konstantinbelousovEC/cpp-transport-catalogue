@@ -17,7 +17,7 @@ namespace reader {
         std::unordered_set<const json::Dict*> buses_queries_;
         transport_router::RoutingSettings routing_settings_;
         std::vector<const json::Dict*> stat_requests_;
-        renderer::RenderSettings settings_;
+        renderer::RenderSettings render_settings_;
     };
 
     json::Document ReadJSON(std::istream& input);

@@ -64,7 +64,7 @@ namespace reader {
         set.underlayer_color_ = MakeColorForSVG(settings.at("underlayer_color"));
         set.underlayer_width_ = settings.at("underlayer_width").AsDouble();
         set.color_palette_ = MakeArrayOfColors(settings.at("color_palette").AsArray());
-        queries.settings_ = std::move(set);
+        queries.render_settings_ = std::move(set);
     }
 
     void ParseRoutingSettings(const json::Node& data, SortedJSONQueries& queries) {
