@@ -2,13 +2,14 @@
 #include <stdexcept>
 
 namespace reader {
+
     void ParseBaseRequests(const json::Node& data, SortedJSONQueries& queries) {
         auto& requests = data.AsArray();
         for (auto& node : requests) {
             auto& req_json = node.AsDict();
             if (req_json.at("type").AsString() == "Stop") {
                 queries.stops_queries_.insert(&req_json);
-            } else {
+            } else if (req_json.at("type").AsString() == "Bus") {
                 queries.buses_queries_.insert(&req_json);
             }
         }
@@ -66,6 +67,15 @@ namespace reader {
         queries.settings_ = std::move(set);
     }
 
+    void ParseRoutingSettings(const json::Node& data, SortedJSONQueries& queries) {
+        auto& settings = data.AsDict();
+        transport_router::RoutingSettings set{
+            settings.at("bus_wait_time").AsDouble(),
+            settings.at("bus_velocity").AsDouble()
+        };
+        queries.routing_settings_ = set;
+    }
+
     json::Document ReadJSON(std::istream& input) {
         return json::Load(input);
     }
@@ -79,6 +89,8 @@ namespace reader {
                 ParseStatRequests(data, queries);
             } else if (query == "render_settings") {
                 ParseRenderSettings(data, queries);
+            } else if (query == "routing_settings") {
+                ParseRoutingSettings(data, queries);
             }
         }
         return queries;
@@ -153,6 +165,17 @@ namespace reader {
         return MakeJSONMapResponse(str.str(), query);
     }
 
+    json::Node ProcessRouteQuery(RequestHandler& request_handler, const json::Dict* query) {
+        auto route_description =
+                request_handler.BuildOptimalRoute(query->at("from").AsString(), query->at("to").AsString());
+
+        if (!route_description.has_value()) {
+            return MakeErrorResponse(query);
+        } else {
+            return MakeJSONRouteResponse(route_description.value(), query);
+        }
+    }
+
     json::Document ProcessStatRequests(RequestHandler& request_handler, std::vector<const json::Dict*>& stat_queries) {
         json::Array array;
         for (auto query : stat_queries) {
@@ -162,6 +185,8 @@ namespace reader {
                 array.push_back(ProcessBusQuery(request_handler, query));
             } else if (query->at("type").AsString() == "Map") {
                 array.push_back(ProcessMapQuery(request_handler, query));
+            } else if (query->at("type").AsString() == "Route") {
+                array.push_back(ProcessRouteQuery(request_handler, query));
             }
         }
         json::Document doc(array);

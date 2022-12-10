@@ -4,11 +4,10 @@
 #include "transport_catalogue.h"
 #include "request_handler.h"
 #include "map_renderer.h"
+#include "transport_router.h"
 #include <vector>
 #include <unordered_set>
 #include <utility>
-
-#include <iostream>
 
 namespace reader {
     using namespace std::string_literals;
@@ -16,6 +15,7 @@ namespace reader {
     struct SortedJSONQueries {
         std::unordered_set<const json::Dict*> stops_queries_;
         std::unordered_set<const json::Dict*> buses_queries_;
+        transport_router::RoutingSettings routing_settings_;
         std::vector<const json::Dict*> stat_requests_;
         renderer::RenderSettings settings_;
     };
@@ -25,6 +25,7 @@ namespace reader {
     void ParseBaseRequests(const json::Node& data, SortedJSONQueries& queries);
     void ParseStatRequests(const json::Node& data, SortedJSONQueries& queries);
     void ParseRenderSettings(const json::Node& data, SortedJSONQueries& queries);
+    void ParseRoutingSettings(const json::Node& data, SortedJSONQueries& queries);
 
     SortedJSONQueries ParseJSON(json::Document& doc);
 
@@ -36,9 +37,12 @@ namespace reader {
     svg::Color MakeColorForSVG(const json::Node& node);
     std::vector<svg::Color> MakeArrayOfColors(const json::Array& array);
 
-    void FillTransportCatalogue(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& stop_queries, std::unordered_set<const json::Dict*>& bus_queries);
+    void FillTransportCatalogue(transport_catalogue::TransportCatalogue& transport_catalogue,
+                                std::unordered_set<const json::Dict*>& stop_queries,
+                                std::unordered_set<const json::Dict*>& bus_queries);
 
     json::Node ProcessStopQuery(RequestHandler& request_handler, const json::Dict* query);
     json::Node ProcessBusQuery(RequestHandler& request_handler, const json::Dict* query);
+    json::Node ProcessRouteQuery(RequestHandler& request_handler, const json::Dict* query);
     json::Document ProcessStatRequests(RequestHandler& request_handler, std::vector<const json::Dict*>& stat_queries);
 }

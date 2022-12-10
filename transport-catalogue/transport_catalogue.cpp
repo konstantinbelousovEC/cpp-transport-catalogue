@@ -4,6 +4,8 @@
 
 
 namespace transport_catalogue {
+    using namespace std::string_literals;
+
     void TransportCatalogue::AddStop(domain::Stop stop) {
         stops_.push_back(std::move(stop));
         stop_indexes_.insert({std::string_view(stops_.back().name_), &stops_.back()});
@@ -76,7 +78,7 @@ namespace transport_catalogue {
         std::sort(buses.begin(), buses.end(), [](const domain::Bus* lhs, const domain::Bus* rhs){
             return lhs->name_ < rhs->name_;
         });
-        return  buses;
+        return buses;
     }
 
     std::vector<const domain::Stop*> TransportCatalogue::GetSortedStops() const {
@@ -101,6 +103,41 @@ namespace transport_catalogue {
             }
         }
         return res;
+    }
+
+    const std::unordered_map<std::string_view, const domain::Bus*>& TransportCatalogue::GetBusIndexes() const {
+        return buses_indexes_;
+    }
+
+    void TransportCatalogue::SetArrayOfUsedStops() {
+        for (auto& buses_through_stop : buses_through_the_stop_indexes_) {
+            if (!buses_through_stop.second.empty()) {
+                used_stops_cash_.push_back(buses_through_stop.first->name_);
+            }
+        }
+    }
+
+    size_t TransportCatalogue::GetAmountOfUsedStops() const {
+        return used_stops_cash_.size();
+    }
+
+    const std::vector<std::string_view>& TransportCatalogue::GetUsedStopNames() const {
+        return used_stops_cash_;
+    }
+
+    int TransportCatalogue::GetDistancesBetweenStops(const domain::Stop* stop_1, const domain::Stop* stop_2) const {
+        if (distances_between_stops_.count({stop_1, stop_2}) > 0) {
+            return distances_between_stops_.at({stop_1, stop_2});
+        } else if (distances_between_stops_.count({stop_2, stop_1})) {
+            return distances_between_stops_.at({stop_2, stop_1});
+        } else {
+            std::string error_message = "No any known distance between stops: "s
+                                        .append(stop_1->name_)
+                                        .append(" and ")
+                                        .append(stop_2->name_)
+                                        .append("\n");
+            throw std::runtime_error(error_message);
+        }
     }
 
     double TransportCatalogue::ComputeGeographicalDistance(const domain::Bus& bus) const {
