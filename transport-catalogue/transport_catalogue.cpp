@@ -109,20 +109,16 @@ namespace transport_catalogue {
         return buses_indexes_;
     }
 
-    void TransportCatalogue::SetArrayOfUsedStops() {
-        for (auto& buses_through_stop : buses_through_the_stop_indexes_) {
-            if (!buses_through_stop.second.empty()) {
-                used_stops_cash_.push_back(buses_through_stop.first->name_);
-            }
-        }
-    }
-
     size_t TransportCatalogue::GetAmountOfUsedStops() const {
-        return used_stops_cash_.size();
+        return buses_through_the_stop_indexes_.size();
     }
 
-    const std::vector<std::string_view>& TransportCatalogue::GetUsedStopNames() const {
-        return used_stops_cash_;
+    std::vector<std::string_view> TransportCatalogue::GetUsedStopNames() const {
+        std::vector<std::string_view> used_stops_cash;
+        for (auto& buses_through_stop : buses_through_the_stop_indexes_) {
+            used_stops_cash.push_back(buses_through_stop.first->name_);
+        }
+        return used_stops_cash;
     }
 
     int TransportCatalogue::GetDistancesBetweenStops(const domain::Stop* stop_1, const domain::Stop* stop_2) const {
