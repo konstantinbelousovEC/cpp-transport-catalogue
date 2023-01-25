@@ -32,21 +32,23 @@ namespace transport_router {
 
     class TransportRouter {
     public:
-        TransportRouter(RoutingSettings settings, const transport_catalogue::TransportCatalogue& transport_catalogue)
-        : routing_settings_(settings),
-          transport_catalogue_(transport_catalogue),
-          graph_(std::make_unique<Graph>(transport_catalogue_.GetAmountOfUsedStops() * 2)),
-          router_(nullptr)
-        {
-            FillGraph();
-            router_ = std::make_unique<Router>(*graph_);
-        }
+        TransportRouter(RoutingSettings settings, const transport_catalogue::TransportCatalogue& transport_catalogue);
+
+        TransportRouter(RoutingSettings routing_settings,
+                        const transport_catalogue::TransportCatalogue& transport_catalogue,
+                        std::unique_ptr<Graph>&& graph,
+                        std::unique_ptr<Router>&& router,
+                        std::unordered_map<std::string_view, std::pair<size_t, size_t>>&& pairs_of_vertices_for_each_stop,
+                        EdgeDescriptions&& edges_descriptions);
 
         const RoutingSettings& GetRoutingSettings() const &;
         const transport_catalogue::TransportCatalogue& GetTransportCatalogue() const &;
         std::unique_ptr<Graph>& GetGraph() &;
+        const std::unique_ptr<Graph>& GetGraph() const &;
+        const std::unique_ptr<Router>& GetRouter() const &;
         EdgeDescriptions& GetEdgeDescription() &;
-        std::unordered_map<std::string_view, std::pair<size_t, size_t>>& GetPairsOfVertices() &;
+        const std::unordered_map<std::string_view, std::pair<size_t, size_t>>& GetPairsOfVertices() const &;
+        const EdgeDescriptions& GetEdgeDescriptions() const &;
 
         std::optional<EdgeDescriptions> BuildRoute(std::string_view stop_from, std::string_view stop_to) const;
 

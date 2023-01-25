@@ -3,7 +3,8 @@
 
 namespace reader {
 
-    void ParseBaseRequests(const json::Node& data, SortedJSONQueries& queries) {
+    // void ParseBaseRequests(const json::Node& data, SortedJSONQueries& queries) {
+    void ParseBaseRequests(const json::Node& data, MakeBaseRequests& queries) {
         auto& requests = data.AsArray();
         for (auto& node : requests) {
             auto& req_json = node.AsDict();
@@ -15,7 +16,8 @@ namespace reader {
         }
     }
 
-    void ParseStatRequests(const json::Node& data, SortedJSONQueries& queries) {
+    // void ParseStatRequests(const json::Node& data, SortedJSONQueries& queries) {
+    void ParseStatRequests(const json::Node& data, ProcessRequests& queries) {
         auto& requests = data.AsArray();
         for (auto& node : requests) {
             queries.stat_requests_.push_back(&node.AsDict());
@@ -49,7 +51,8 @@ namespace reader {
         return res;
     }
 
-    void ParseRenderSettings(const json::Node& data, SortedJSONQueries& queries) {
+    // void ParseRenderSettings(const json::Node& data, SortedJSONQueries& queries) {
+    void ParseRenderSettings(const json::Node& data, MakeBaseRequests& queries) {
         auto& settings = data.AsDict();
         renderer::RenderSettings set;
         set.width_ = settings.at("width").AsDouble();
@@ -67,7 +70,8 @@ namespace reader {
         queries.render_settings_ = std::move(set);
     }
 
-    void ParseRoutingSettings(const json::Node& data, SortedJSONQueries& queries) {
+    // void ParseRoutingSettings(const json::Node& data, SortedJSONQueries& queries) {
+    void ParseRoutingSettings(const json::Node& data, MakeBaseRequests& queries) {
         auto& settings = data.AsDict();
         transport_router::RoutingSettings set{
             settings.at("bus_wait_time").AsDouble(),
@@ -80,21 +84,61 @@ namespace reader {
         return json::Load(input);
     }
 
-    SortedJSONQueries ParseJSON(json::Document& doc) {
-        SortedJSONQueries queries;
+//    SortedJSONQueries ParseJSON(json::Document& doc) {
+//        SortedJSONQueries queries;
+//        for (auto& [query, data] : doc.GetRoot().AsDict()) {
+//            if (query == "base_requests"s) {
+//                ParseBaseRequests(data, queries);
+//            } else if (query == "stat_requests"s) {
+//                ParseStatRequests(data, queries);
+//            } else if (query == "render_settings") {
+//                ParseRenderSettings(data, queries);
+//            } else if (query == "routing_settings") {
+//                ParseRoutingSettings(data, queries);
+//            } else if (query == "serialization_settings") {
+//                // ParseSerializationSettings(data, queries);
+//            }
+//        }
+//        return queries;
+//    }
+
+    // draft
+    template<typename BaseRequests>
+    void ParseSerializationSettings(const json::Node& data, BaseRequests& queries) {
+        auto& settings = data.AsDict();
+        serialization::SerializationSettings set {
+            settings.at("file").AsString()
+        };
+        queries.serialization_settings_ = set;
+    }
+
+    MakeBaseRequests ParseMakeBaseJSON(json::Document& doc) {
+        MakeBaseRequests queries;
         for (auto& [query, data] : doc.GetRoot().AsDict()) {
             if (query == "base_requests"s) {
                 ParseBaseRequests(data, queries);
-            } else if (query == "stat_requests"s) {
-                ParseStatRequests(data, queries);
             } else if (query == "render_settings") {
                 ParseRenderSettings(data, queries);
             } else if (query == "routing_settings") {
                 ParseRoutingSettings(data, queries);
+            } else if (query == "serialization_settings") {
+                ParseSerializationSettings(data, queries);
             }
         }
         return queries;
     }
+    ProcessRequests ParseProcessRequestsJSON(json::Document& doc) {
+        ProcessRequests queries;
+        for (auto& [query, data] : doc.GetRoot().AsDict()) {
+            if (query == "stat_requests"s) {
+                ParseStatRequests(data, queries);
+            } else if (query == "serialization_settings") {
+                ParseSerializationSettings(data, queries);
+            }
+        }
+        return queries;
+    }
+    //
 
     void AddStopsFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries) {
         for (const json::Dict* query : queries) {

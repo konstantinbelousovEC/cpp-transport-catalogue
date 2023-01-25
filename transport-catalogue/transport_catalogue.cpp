@@ -30,6 +30,9 @@ namespace transport_catalogue {
             distances_between_stops_.insert({{FindStop(distances.first), FindStop(key)}, value});
         }
     }
+    void TransportCatalogue::AddStopsDistancesByPair(std::string_view from, std::string_view to, int distance) {
+        distances_between_stops_.insert({{FindStop(from), FindStop(to)}, distance});
+    }
 
     const domain::Bus* TransportCatalogue::FindBus(std::string_view name) const {
         if (buses_indexes_.count(name) == 0) return nullptr;
@@ -66,6 +69,13 @@ namespace transport_catalogue {
         }
         domain::StopInfo info{stop->name_, &buses_through_the_stop_indexes_.at(stop)};
         return info;
+    }
+
+    const std::deque<domain::Stop>& TransportCatalogue::GetStops() const & {
+        return stops_;
+    }
+    const std::deque<domain::Bus>& TransportCatalogue::GetBuses() const & {
+        return buses_;
     }
 
     std::vector<const domain::Bus*> TransportCatalogue::GetSortedBuses() const {
@@ -107,6 +117,9 @@ namespace transport_catalogue {
 
     const std::unordered_map<std::string_view, const domain::Bus*>& TransportCatalogue::GetBusIndexes() const {
         return buses_indexes_;
+    }
+    const std::unordered_map<std::pair<const domain::Stop*, const domain::Stop*>, int, Hasher>& TransportCatalogue::GetDistancess() const & {
+        return distances_between_stops_;
     }
 
     size_t TransportCatalogue::GetAmountOfUsedStops() const {

@@ -19,20 +19,32 @@
 
 namespace transport_catalogue {
 
+    class Hasher {
+    private:
+        std::hash<const domain::Stop*> hasher_;
+    public:
+        size_t operator()(const std::pair<const domain::Stop*, const domain::Stop*>& pointers) const {
+            return static_cast<size_t>(hasher_(pointers.first) * 37 * 37 + hasher_(pointers.second));
+        }
+    };
+
     class TransportCatalogue {
     public:
         void AddStop(domain::Stop stop);
         void AddBus(domain::RawBus raw_bus);
         void AddStopsDistances(const std::pair<std::string, std::unordered_map<std::string, int>>& distances);
-        void SetArrayOfUsedStops();
+        void AddStopsDistancesByPair(std::string_view from, std::string_view to, int distance);
         const domain::Bus* FindBus(std::string_view name) const;
         const domain::Stop* FindStop(std::string_view name) const;
         std::optional<domain::BusInfo> GetBusInfo(std::string_view name) const;
         std::optional<domain::StopInfo> GetStopInfo(std::string_view name) const;
+        const std::deque<domain::Stop>& GetStops() const &;
+        const std::deque<domain::Bus>& GetBuses() const &;
         std::vector<const domain::Bus*> GetSortedBuses() const;
         std::vector<const domain::Stop*> GetSortedStops() const;
         std::vector<geo::Coordinates> GetValidCoordinates() const;
         const std::unordered_map<std::string_view, const domain::Bus*>& GetBusIndexes() const;
+        const std::unordered_map<std::pair<const domain::Stop*, const domain::Stop*>, int, Hasher>& GetDistancess() const &;
         int GetDistancesBetweenStops(const domain::Stop* stop_1, const domain::Stop* stop_2) const;
         std::vector<std::string_view> GetUsedStopNames() const;
         size_t GetAmountOfUsedStops() const;
@@ -42,15 +54,6 @@ namespace transport_catalogue {
         int ComputeRoadDistance(const domain::Bus& bus) const;
         int CountDistanceOnSegmentForward(const domain::Bus& bus, size_t finish) const;
         int CountDistanceOnSegmentBackward(const domain::Bus& bus, size_t start) const;
-
-        class Hasher {
-        private:
-            std::hash<const domain::Stop*> hasher_;
-        public:
-            size_t operator()(const std::pair<const domain::Stop*, const domain::Stop*>& pointers) const {
-                return static_cast<size_t>(hasher_(pointers.first) * 37 * 37 + hasher_(pointers.second));
-            }
-        };
 
         std::deque<domain::Stop> stops_;
         std::deque<domain::Bus> buses_;

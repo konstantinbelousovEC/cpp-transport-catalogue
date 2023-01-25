@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+
+package transport_catalogue_serialize;
+
+message Edge {
+  uint64 from_id = 1;
+  uint64 to_id = 2;
+  double weight = 3;
+}
+
+enum EdgeType {
+  WAIT = 0;
+  BUS = 1;
+}
+
+message SpanCount {
+  bool has_value = 1;
+  int32 span_count = 2;
+}
+
+message EdgeDescription {
+  EdgeType type = 1;
+  string edge_name = 2;
+  double time = 3;
+  SpanCount span_count = 4;
+}
+
+message IncidenceList {
+  repeated uint32 edge_ids = 1;
+}
+
+message Graph {
+  repeated Edge edges = 1;
+  repeated IncidenceList incidence_lists = 2;
+}
+
+message PrevEdge {
+  bool has_value = 1;
+  uint64 prev_edge = 2;
+}
+
+message RouteInternalData {
+  double weight = 1;
+  PrevEdge prev_edge = 2;
+  bool has_value = 3;
+}
+
+message RoutesInternalDataArray {
+  repeated RouteInternalData routes_internal_data = 1;
+}
+
+message Router {
+  repeated RoutesInternalDataArray array_of_routes_internal_data = 1;
+}

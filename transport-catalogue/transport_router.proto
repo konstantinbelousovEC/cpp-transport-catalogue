@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+import "graph.proto";
+
+package transport_catalogue_serialize;
+
+message RoutingSettings {
+  double bus_wait_time = 1;
+  double bus_velocity = 2;
+}
+
+message PairOfVertices {
+  string name = 1;
+  uint64 id_from = 2;
+  uint64 id_to = 3;
+}
+
+message TransportRouter {
+    RoutingSettings routing_settings = 1;
+    Graph graph = 2;
+    Router router = 3;
+    repeated PairOfVertices pairs_of_vertices = 4;
+    repeated EdgeDescription edges_description = 5;
+}

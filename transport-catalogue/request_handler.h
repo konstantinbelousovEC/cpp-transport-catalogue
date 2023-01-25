@@ -10,14 +10,24 @@ public:
     using OptionalBusInfo = const std::optional<domain::BusInfo>;
     using OptionalStopInfo = const std::optional<domain::StopInfo>;
     
-    explicit RequestHandler(const transport_catalogue::TransportCatalogue& transport_catalogue,
-                            renderer::RenderSettings& render_settings,
-                            transport_router::RoutingSettings routing_settings)
-    : transport_catalogue_(transport_catalogue),
-      renderer_(render_settings, std::move(transport_catalogue.GetValidCoordinates()),
+//    explicit RequestHandler(const transport_catalogue::TransportCatalogue& transport_catalogue,
+//                            renderer::RenderSettings& render_settings,
+//                            transport_router::RoutingSettings routing_settings)
+//    : transport_catalogue_(transport_catalogue),
+//      renderer_(render_settings, std::move(transport_catalogue.GetValidCoordinates()),
+//                             transport_catalogue.GetSortedBuses(),
+//                             transport_catalogue.GetSortedStops()),
+//      router_(routing_settings, transport_catalogue_) {}
+
+    RequestHandler(const transport_catalogue::TransportCatalogue& transport_catalogue,
+                   renderer::RenderSettings& render_settings,
+                   const transport_router::TransportRouter& router)
+                   : transport_catalogue_(transport_catalogue),
+                     renderer_(render_settings, std::move(transport_catalogue.GetValidCoordinates()),
                              transport_catalogue.GetSortedBuses(),
                              transport_catalogue.GetSortedStops()),
-      router_(routing_settings, transport_catalogue_) {}
+                     router_(router) {
+    }
 
     [[nodiscard]] OptionalBusInfo GetBusStat(std::string_view bus_name) const;
     [[nodiscard]] OptionalStopInfo GetBusesByStop(std::string_view stop_name) const;
@@ -27,7 +37,8 @@ public:
 private:
     const transport_catalogue::TransportCatalogue& transport_catalogue_;
     renderer::MapRenderer renderer_;
-    transport_router::TransportRouter router_;
+    const transport_router::TransportRouter& router_;
+//    transport_router::TransportRouter router_;
 };
 
 json::Array MakeBusesArray(domain::StopInfo& stop_info);

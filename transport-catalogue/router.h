@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graph.h"
+#include "graph.pb.h"
 
 #include <algorithm>
 #include <cassert>
@@ -20,7 +21,14 @@ namespace graph {
         using Graph = DirectedWeightedGraph<Weight>;
 
     public:
+        struct RouteInternalData {
+            Weight weight;
+            std::optional<EdgeId> prev_edge;
+        };
+        using RoutesInternalData = std::vector<std::vector<std::optional<RouteInternalData>>>;
+
         explicit Router(const Graph& graph);
+        Router(const Graph& graph, RoutesInternalData&& routes_internal_data);
 
         struct RouteInfo {
             Weight weight;
@@ -28,13 +36,9 @@ namespace graph {
         };
 
         std::optional<RouteInfo> BuildRoute(VertexId from, VertexId to) const;
+        transport_catalogue_serialize::Router GetSerializedRouter() const;
 
     private:
-        struct RouteInternalData {
-            Weight weight;
-            std::optional<EdgeId> prev_edge;
-        };
-        using RoutesInternalData = std::vector<std::vector<std::optional<RouteInternalData>>>;
 
         void InitializeRoutesInternalData(const Graph& graph) {
             const size_t vertex_count = graph.GetVertexCount();
@@ -94,6 +98,11 @@ namespace graph {
         }
     }
 
+    template<typename Weight>
+    Router<Weight>::Router(const Router::Graph& graph, Router::RoutesInternalData&& routes_internal_data)
+            : graph_(graph), routes_internal_data_(routes_internal_data) {
+    }
+
     template <typename Weight>
     std::optional<typename Router<Weight>::RouteInfo> Router<Weight>::BuildRoute(VertexId from,
                                                                                  VertexId to) const {
@@ -114,4 +123,34 @@ namespace graph {
         return RouteInfo{weight, std::move(edges)};
     }
 
+    template<typename Weight>
+    transport_catalogue_serialize::Router Router<Weight>::GetSerializedRouter() const {
+        transport_catalogue_serialize::Router router_serialized;
+
+        for (auto& arr : routes_internal_data_) {
+            transport_catalogue_serialize::RoutesInternalDataArray routes_internal_data_array_serialized;
+            for (auto& route_internal_data : arr) {
+                transport_catalogue_serialize::RouteInternalData route_internal_data_serialized;
+                if (route_internal_data.has_value()) {
+                    route_internal_data_serialized.set_weight(route_internal_data.value().weight);
+                    if (route_internal_data.value().prev_edge.has_value()) {
+                        transport_catalogue_serialize::PrevEdge prev_edge_serialized;
+                        prev_edge_serialized.set_has_value(true);
+                        prev_edge_serialized.set_prev_edge(route_internal_data.value().prev_edge.value());
+                        *route_internal_data_serialized.mutable_prev_edge() = std::move(prev_edge_serialized);
+                    } else {
+                        transport_catalogue_serialize::PrevEdge prev_edge_serialized;
+                        prev_edge_serialized.set_has_value(false);
+                        *route_internal_data_serialized.mutable_prev_edge() = std::move(prev_edge_serialized);
+                    }
+                    route_internal_data_serialized.set_has_value(true);
+                } else {
+                    route_internal_data_serialized.set_has_value(false);
+                }
+                *routes_internal_data_array_serialized.add_routes_internal_data() = std::move(route_internal_data_serialized);
+            }
+            *router_serialized.add_array_of_routes_internal_data() = std::move(routes_internal_data_array_serialized);
+        }
+        return router_serialized;
+    }
 }  // namespace graph

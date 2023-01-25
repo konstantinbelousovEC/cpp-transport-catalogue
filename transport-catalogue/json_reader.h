@@ -5,6 +5,7 @@
 #include "request_handler.h"
 #include "map_renderer.h"
 #include "transport_router.h"
+#include "serialization.h"
 #include <vector>
 #include <unordered_set>
 #include <utility>
@@ -20,14 +21,29 @@ namespace reader {
         renderer::RenderSettings render_settings_;
     };
 
+    // draft
+    struct MakeBaseRequests {
+        std::unordered_set<const json::Dict*> stops_queries_;
+        std::unordered_set<const json::Dict*> buses_queries_;
+        transport_router::RoutingSettings routing_settings_;
+        renderer::RenderSettings render_settings_;
+        serialization::SerializationSettings serialization_settings_;
+    };
+    struct ProcessRequests {
+        std::vector<const json::Dict*> stat_requests_;
+        serialization::SerializationSettings serialization_settings_;
+    };
+    //
+
     json::Document ReadJSON(std::istream& input);
 
-    void ParseBaseRequests(const json::Node& data, SortedJSONQueries& queries);
-    void ParseStatRequests(const json::Node& data, SortedJSONQueries& queries);
-    void ParseRenderSettings(const json::Node& data, SortedJSONQueries& queries);
-    void ParseRoutingSettings(const json::Node& data, SortedJSONQueries& queries);
+    void ParseBaseRequests(const json::Node& data, MakeBaseRequests& queries);
+    void ParseStatRequests(const json::Node& data, ProcessRequests& queries);
+    void ParseRenderSettings(const json::Node& data, MakeBaseRequests& queries);
+    void ParseRoutingSettings(const json::Node& data, MakeBaseRequests& queries);
 
-    SortedJSONQueries ParseJSON(json::Document& doc);
+    MakeBaseRequests ParseMakeBaseJSON(json::Document& doc);
+    ProcessRequests ParseProcessRequestsJSON(json::Document& doc);
 
     void AddStopsFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries);
     void AddStopsDistancesFromJSON(transport_catalogue::TransportCatalogue& transport_catalogue, std::unordered_set<const json::Dict*>& queries);

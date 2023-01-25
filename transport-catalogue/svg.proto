@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package transport_catalogue_serialize;
+
+message Point {
+  double x = 1;
+  double y = 2;
+}
+
+message Rgb {
+  uint32 red = 1;
+  uint32 green = 2;
+  uint32 blue = 3;
+}
+
+message Rgba {
+  uint32 red = 1;
+  uint32 green = 2;
+  uint32 blue = 3;
+  float alpha = 4;
+}
+
+message Color {
+  oneof colors {
+    bool non_color = 1;
+    Rgb rgb = 2;
+    Rgba rgba = 3;
+    string str_color = 4;
+  }
+}
