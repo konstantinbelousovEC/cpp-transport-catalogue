@@ -379,11 +379,7 @@ namespace serialization {
             rgba.blue = color_serialized.rgba().blue();
             rgba.opacity = color_serialized.rgba().alpha();
             color = rgba;
-        } else if (color_serialized.colors_case() == transport_catalogue_serialize::Color::ColorsCase::kStrColor) {
-            // строчка ниже не принимается тренажером, так как по его мнению у const class transport_catalogue_serialize::Color нет метода has_str_color()
-            // но в сгенерированном "svg.pb.h" такой метод есть и он определен в "svg.pb.cc" и на рабочей машине с компиляторами clang-13 и gcc-11 все работает корректно
-            //} else if (color_serialized.has_str_color()) {
-            // после проверки комментарии будут удалены
+        } else if (color_serialized.has_str_color()) {
             color = color_serialized.str_color();
         }
         return color;

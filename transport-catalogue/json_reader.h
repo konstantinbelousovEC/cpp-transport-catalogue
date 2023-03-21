@@ -21,7 +21,6 @@ namespace reader {
         renderer::RenderSettings render_settings_;
     };
 
-    // draft
     struct MakeBaseRequests {
         std::unordered_set<const json::Dict*> stops_queries_;
         std::unordered_set<const json::Dict*> buses_queries_;
@@ -29,11 +28,11 @@ namespace reader {
         renderer::RenderSettings render_settings_;
         serialization::SerializationSettings serialization_settings_;
     };
+    
     struct ProcessRequests {
         std::vector<const json::Dict*> stat_requests_;
         serialization::SerializationSettings serialization_settings_;
     };
-    //
 
     json::Document ReadJSON(std::istream& input);
 
